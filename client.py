@@ -1,4 +1,3 @@
-#documentation for ThreadedSocketServer is from https://docs.python.org/3.5/library/socketserver.html
 #Reference to http://effbot.org/tkinterbook/tkinter-index.htm for Tkinter
 
 import socket
@@ -8,7 +7,9 @@ import tkinter as tk
 HOST, PORT = "localhost", 9999
 
 class chatGUI(tk.Tk):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     def __init__(self):
+        self.sock.connect((HOST, PORT))
         tk.Tk.__init__(self)
         self.title("Chat Room")
         self.make_widgets()
@@ -40,23 +41,20 @@ class chatGUI(tk.Tk):
         self.bt.pack()
         
     def sendData(self):
-        # Create a TCP socket
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            #get data from entry
-            data = self.entry.get()
-            
-            # Connect to server and send data
-            sock.connect((HOST, PORT))
-            sock.sendall(bytes(data + "\n", "utf-8"))
-            
-            # Receive data from the server and shut down
-            received = str(sock.recv(1024), "utf-8")
-            
-            # Writes back response to the message box
-            self.messagebox.insert(tk.END, received)
+        # Get data from entry
+        data = self.entry.get()
+        self.messagebox.insert(tk.END, "Sending: " + data)
+        # Send data to server
+        self.sock.sendall(bytes(data + "\n", "utf-8"))       
+        # Receive data from the server and shut down
+        received = str(self.sock.recv(1024), "utf-8")
+        # Writes back response to the message box
+        self.messagebox.insert(tk.END, "Received: " + received)
         
     def exitProgram():
+        self.sock.close()
         self.quit()
 
-chat = chatGUI()
-chat.mainloop()
+if __name__ == "__main__":
+    chat = chatGUI()
+    chat.mainloop()
